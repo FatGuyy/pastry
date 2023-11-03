@@ -6,9 +6,8 @@
     <title>Rustacious</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <style> 
-        body { 
+    <style>
+        body {
             font-family: 'Roboto', sans-serif;
         }
         .logo {
@@ -21,9 +20,8 @@
     <img src="https://rustacean.net/more-crabby-things/dancing-ferris.gif" alt="Rust mascot" class="logo mb-4">
     <h1 class="text-3xl mb-6"> Rusty Pastry</h1>
     <h5 class="text-lg mb-10">A Minimal pastebin Type application, re-written in Rust!</h5>
-    <form class="w-full max-w-md bg-gray-700 rounded-lg p-6 shadow-md" action="/submit" method="post">
-        <textarea name="content" rows="10" class="w-full p-2 border border-gray-600 rounded-md mb-4 bg-black text-white"></textarea>
-        <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700">Submit</button>
-    </form>
+        <div>
+            <p>{content_placeholder}</p>
+        </div>
 </body>
 </html>

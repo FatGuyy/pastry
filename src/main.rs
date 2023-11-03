@@ -7,8 +7,12 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use std::sync::Mutex;
 use actix_files::NamedFile;
+use std::fs;
 
 // This struct holds application state( the database connection ).
+// Mutex ensures that only one thread can access a shared resource
+// It is used for synchronization in concurrent programming.
+// Here it is used to protect access to `Connection` to prevent data races and ensure thread safety.
 struct AppState {
     db: Mutex<Connection>,
 }
@@ -47,18 +51,49 @@ async fn submit(content: web::Form<FormData>, data: web::Data<AppState>) -> impl
 // `conn` locks the connection to DB.
 // `content` gets the data from the pastes table using a token, gets the content.
 // Returns the data in `<pre>` tag
-async fn get_paste(token: web::Path<String>, data: web::Data<AppState>) -> impl Responder {
+async fn get_paste(content: web::Path<String>, data: web::Data<AppState>) -> Result<HttpResponse, actix_web::Error> {
     let conn = data.db.lock().unwrap();
-    let content = conn
+
+    let paste_content = conn
         .query_row(
             "SELECT content FROM pastes WHERE token = ?",
-            params![token.to_string()],
+            params![content.to_string()],
             |row| row.get::<_, String>(0),
         )
         .unwrap_or_else(|_| "Paste not found".to_string());
 
-    HttpResponse::Ok().body(format!("<pre>{}</pre>", content))
+    // let template = fs::read_to_string("view_paste.html").unwrap_or_else(|_| "Template not found".to_string());
+    // println!("template missing : {:?}", template);
+    let html_page = format!(
+        r#"
+        <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Rustacious</title>
+                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
+                <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+            </head>
+            <body class="bg-gray-800 text-white" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; height: 100vh; margin: 0;">
+            <img src="https://rustacean.net/more-crabby-things/dancing-ferris.gif" alt="Rust mascot" class="logo mb-4" style="width: 16rem; height: 9rem;">
+                <h2> Rusty Pastry</h2>
+                    <h1  class="text-3xl mb-6">{}</h1>
+            </body>
+            </html>
+        "#,
+        paste_content
+    );
+
+    // Replace a placeholder in the template with the actual content
+    // let html_page = template.replace("{content_placeholder}", &paste_content);
+
+    // Return the HTML page as an HTTP response
+    Ok(HttpResponse::Ok()
+        .content_type("text/html")
+        .body(html_page))
 }
+
 
 #[derive(serde::Deserialize)]
 struct FormData {
@@ -85,6 +120,7 @@ async fn main() -> std::io::Result<()> {
     });
 
 
+    //Actually start the http server with 3 routes and at given port 8080
     HttpServer::new(move || {
         App::new()
             .app_data(app_state.clone())
