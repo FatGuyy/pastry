@@ -62,31 +62,8 @@ async fn get_paste(content: web::Path<String>, data: web::Data<AppState>) -> Res
         )
         .unwrap_or_else(|_| "Paste not found".to_string());
 
-    // let template = fs::read_to_string("view_paste.html").unwrap_or_else(|_| "Template not found".to_string());
-    // println!("template missing : {:?}", template);
-    let html_page = format!(
-        r#"
-        <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Rustacious</title>
-                <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css" rel="stylesheet">
-                <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
-            </head>
-            <body class="bg-gray-800 text-white" style="display: flex; flex-direction: column; justify-content: flex-start; align-items: center; height: 100vh; margin: 0;">
-            <img src="https://rustacean.net/more-crabby-things/dancing-ferris.gif" alt="Rust mascot" class="logo mb-4" style="width: 16rem; height: 9rem;">
-                <h2> Rusty Pastry</h2>
-                    <h1  class="text-3xl mb-6">{}</h1>
-            </body>
-            </html>
-        "#,
-        paste_content
-    );
-
-    // Replace a placeholder in the template with the actual content
-    // let html_page = template.replace("{content_placeholder}", &paste_content);
+    let html_page = include_str!("view_paste.html");
+    let html_page = &html_page.replace("{{paste_content}}", &paste_content);
 
     // Return the HTML page as an HTTP response
     Ok(HttpResponse::Ok()
